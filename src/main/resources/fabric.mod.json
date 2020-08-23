@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "cheatless",
+  "version": "${version}",
+  "name": "Cheatless",
+  "description": "",
+  "authors": ["louis9902"],
+  "contact": {},
+  "license": "LGPL-3.0",
+  "icon": "assets/cheatless/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["io.github.louis9902.cheatless.client.CheatlessClient"]
+  },
+  "mixins": [
+    "cheatless.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.9.2+build.206",
+    "fabric": "*",
+    "minecraft": "1.16.2"
+  }
+}
