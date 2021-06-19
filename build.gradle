@@ -1,19 +1,15 @@
 plugins {
-    id 'fabric-loom' version '0.5.1'
+    id 'fabric-loom' version '0.8-SNAPSHOT'
     id 'maven-publish'
-    id 'com.matthewprenger.cursegradle' version '1.4.0'
 }
 
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
-
-archivesBaseName = project.archives_base_name
+archivesBaseName = "${project.archives_base_name}-mc${project.minecraft_version}"
 version = project.mod_version
 group = project.maven_group
 
 dependencies {
     //to change the versions see the gradle.properties file
-    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    minecraft "net.minecraft:minecraft:${project.minecraft_version}"
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
@@ -27,30 +23,31 @@ dependencies {
 processResources {
     inputs.property "version", project.version
 
-    from(sourceSets.main.resources.srcDirs) {
-        include "fabric.mod.json"
+    filesMatching("fabric.mod.json") {
         expand "version": project.version
     }
 
-    from(sourceSets.main.resources.srcDirs) {
-        exclude "fabric.mod.json"
-    }
 }
 
-// ensure that the encoding is set to UTF-8, no matter what the system default is
-// this fixes some edge cases with special characters not displaying correctly
-// see http://yodaconditions.net/blog/fix-for-java-file-encoding-problems-with-gradle.html
-tasks.withType(JavaCompile) {
+tasks.withType(JavaCompile).configureEach {
+    // ensure that the encoding is set to UTF-8, no matter what the system default is
+    // this fixes some edge cases with special characters not displaying correctly
+    // see http://yodaconditions.net/blog/fix-for-java-file-encoding-problems-with-gradle.html
     options.encoding = "UTF-8"
+    // Minecraft 1.17 (21w19a) upwards uses Java 16.
+    it.options.release = 16
 }
 
-// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
-// if it is present.
-// If you remove this task, sources will not be generated.
-task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier = "sources"
-    from sourceSets.main.allSource
+java {
+    // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
+    // if it is present.
+    // If you remove this line, sources will not be generated.
+    withSourcesJar()
+
+    sourceCompatibility = JavaVersion.VERSION_16
+    targetCompatibility = JavaVersion.VERSION_16
 }
+
 
 jar {
     from "LICENSE"
@@ -74,31 +71,5 @@ publishing {
     repositories {
         // uncomment to publish to the local maven
         // mavenLocal()
-    }
-}
-
-curseforge{
-    apiKey = project.hasProperty("curse_api_key") ? project.curse_api_key : "###"
-    project {
-        id = '408115'
-        changelogType = 'markdown'
-        changelog = file("changelog.md")
-        releaseType = 'release'
-        addGameVersion project.minecraft_version
-        addGameVersion "Java 8"
-        addGameVersion "Fabric"
-
-        mainArtifact(remapJar) {
-            displayName = "Cheatless $project.version"
-        }
-
-        afterEvaluate {
-            mainArtifact(remapJar)
-            uploadTask.dependsOn(remapJar)
-        }
-    }
-
-    options {
-        forgeGradleIntegration = false
     }
 }
